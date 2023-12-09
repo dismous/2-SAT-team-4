@@ -1,4 +1,4 @@
-A	F	red	green
-B	G	blue    red
-C	H	green	blue
-C	N	red	blue
+A,F,red,green
+D,G,purple,blue
+V,H,red,purple
+Y,U,yellow,white
