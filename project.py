@@ -2,7 +2,11 @@
 Team 4 project
 git: 
 """
+
 import csv
+import random
+import string
+import pandas as pd
 
 def read_graph_from_file(file_path):
     """
@@ -21,6 +25,8 @@ def read_graph_from_file(file_path):
     with open(file_path, 'r') as file:
         reader = csv.reader(file, delimiter=',')
         for row in reader:
+            if len(row) != 4:
+                continue
             vertex1, vertex2, color1, color2 = row
             if vertex1 not in graph:
                 graph[vertex1] = {'color': color1, 'neighbors': []}
@@ -44,6 +50,28 @@ def successful_coloring(graph):
                 return "Coloring doesn't exist"
     return coloring
 
-if __name__ == '__main__':
-    import doctest
-    print(doctest.testmod())
+def generate_random_color():
+    return random.choice(['red', 'green', 'blue'])
+
+def generate_random_vertex():
+    return ''.join(random.choices(string.ascii_uppercase, k=1))
+
+def generate_random_edge(vertices):
+    vertex1 = random.choice(vertices)
+    vertex2 = random.choice([v for v in vertices if v != vertex1])
+    return vertex1, vertex2
+
+def generate_graph_csv(num_vertices, num_edges, output_file):
+    vertices = [generate_random_vertex() for _ in range(num_vertices)]
+    edges = [generate_random_edge(vertices) for _ in range(num_edges)]
+
+    data = []
+    for edge in edges:
+        color1, color2 = generate_random_color(), generate_random_color()
+        data.append((edge[0], edge[1], color1, color2))
+
+    df = pd.DataFrame(data, columns=['Vertex1', 'Vertex2', 'Color1', 'Color2'])
+    df.to_csv(output_file, index=False)
+
+if __name__ == 'main':
+    generate_graph_csv(1000, 20000, 'large_graph.csv')
