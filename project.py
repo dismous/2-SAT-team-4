@@ -72,6 +72,6 @@ def generate_graph_csv(num_vertices, num_edges, output_file):
 
     df = pd.DataFrame(data, columns=['Vertex1', 'Vertex2', 'Color1', 'Color2'])
     df.to_csv(output_file, index=False)
-
+    
 if __name__ == 'main':
-    generate_graph_csv(1000, 20000, 'large_graph.csv')
+    print(generate_graph_csv(1000, 20000, 'large_graph.csv'))
