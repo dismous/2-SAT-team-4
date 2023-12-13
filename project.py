@@ -87,7 +87,7 @@ def kosaraju(graph, inv_graph):
             sccs.append(scc)
     return sccs
 
-def successful_coloring(graph):
+def successful_coloring(graph__):
     """
     Determine if a successful coloring of the graph is possible.
 
@@ -97,10 +97,10 @@ def successful_coloring(graph):
     Returns:
         bool: True if a successful coloring is possible, False otherwise.
     """
-    for vertex, data in graph.items():
+    for _, data in graph__.items():
         color = data['color']
         for neighbor in data['neighbors']:
-            if graph[neighbor]['color'] == color:
+            if graph__[neighbor]['color'] == color:
                 return False
     return True
 
@@ -162,7 +162,7 @@ def generate_graph_csv(num_vertices, num_edges, output_file):
 
     df = pd.DataFrame(data, columns=['Vertex1', 'Vertex2', 'Color1', 'Color2'])
     df.to_csv(output_file, index=False)
-    
+
 if __name__ == '__main__':
     generate_graph_csv(1000, 20000, 'large_graph_res.csv')
     graph = read_graph_from_file('graph.csv')
