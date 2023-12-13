@@ -66,7 +66,7 @@ def dfs(graph, start_node):
 
 def kosaraju(graph, inv_graph):
     """
-    Use of kosaaju's algorithm to find the strongly connected components of a graph.
+    Use of kosaraju's algorithm to find the strongly connected components of a graph.
 
     >>> graph = {1: [2], 2: [3], 3: [1, 4], 4: [5], 5: [6], 6: [4]}
     >>> inv_graph = {1: [3], 2: [1], 3: [2], 4: [3, 6], 5: [4], 6: [5]}
