@@ -1,4 +1,4 @@
-A,F,red,green
-D,G,purple,blue
-V,H,red,purple
-Y,U,yellow,white
+A,B,red,green
+D,B,blue,green
+C,B,blue,green
+C,A,blue,red

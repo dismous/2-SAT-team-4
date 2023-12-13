@@ -165,5 +165,5 @@ def generate_graph_csv(num_vertices, num_edges, output_file):
     
 if __name__ == '__main__':
     generate_graph_csv(1000, 20000, 'large_graph_res.csv')
-    graph = read_graph_from_file('large_graph.csv')
+    graph = read_graph_from_file('graph.csv')
     print(successful_coloring(graph))
