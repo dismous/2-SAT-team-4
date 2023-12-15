@@ -1,5 +1,10 @@
 # 2-SAT-team-4
- 
+Презентація: https://www.canva.com/design/DAF2-djWkRA/1R7PqAoFCmE13J6AL9GsJQ/edit?utm_content=DAF2-djWkRA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
+
+
+
+
 Звіт
 
 Вступ:
