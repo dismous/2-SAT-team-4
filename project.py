@@ -1,77 +1,192 @@
 """
-Team 4 project
-git: 
+Recoloring given colored graph using 2-SAT
 """
+from typing import Dict, List, Tuple
 
-import csv
-import random
-import string
-import pandas as pd
-
-def read_graph_from_file(file_path):
+def csv_to_graph(path: str) -> Tuple[Dict[int, List[int]], Dict[int, int]]:
     """
-    Read a graph from a file and return a dictionary representation of the graph.
-    >>> read_graph_from_file('graph.csv')
-    {'A': {'color': 'red', 'neighbors': ['F']},\
- 'F': {'color': 'green', 'neighbors': ['A']},\
- 'D': {'color': 'purple', 'neighbors': ['G']},\
- 'G': {'color': 'blue', 'neighbors': ['D']},\
- 'V': {'color': 'red', 'neighbors': ['H']},\
- 'H': {'color': 'purple', 'neighbors': ['V']},\
- 'Y': {'color': 'yellow', 'neighbors': ['U']},\
- 'U': {'color': 'white', 'neighbors': ['Y']}}
+    Parses a CSV file to generate a graph and a corresponding color mapping.
+    Parameters:
+        file_path (str): The file path for the CSV file.
+    Returns:
+        Tuple[Dict[int, List[int]], Dict[int, int]]: A graph represented as an adjacency list,
+        along with a dictionary mapping nodes to their colors.
     """
     graph = {}
-    with open(file_path, 'r') as file:
-        reader = csv.reader(file, delimiter=',')
-        for row in reader:
-            if len(row) != 4:
-                continue
-            vertex1, vertex2, color1, color2 = row
-            if vertex1 not in graph:
-                graph[vertex1] = {'color': color1, 'neighbors': []}
-            if vertex2 not in graph:
-                graph[vertex2] = {'color': color2, 'neighbors': []}
-            graph[vertex1]['neighbors'].append(vertex2)
-            graph[vertex2]['neighbors'].append(vertex1)
-    return graph
+    node_colors = {}
+    with open(path, "r", encoding="utf-8") as file:
+        for record in file:
+            node1, node2, color_node1, color_node2 = map(int, record.strip().split(",")[:4])
+            transformed_node1 = (node1 + 1) * 3
+            transformed_node2 = (node2 + 1) * 3
 
-def successful_coloring(graph):
+            if transformed_node1 not in graph:
+                graph[transformed_node1] = [transformed_node2]
+                node_colors[transformed_node1] = color_node1
+            elif transformed_node2 not in graph[transformed_node1]:
+                graph[transformed_node1].append(transformed_node2)
+
+            if transformed_node2 not in graph:
+                graph[transformed_node2] = [transformed_node1]
+                node_colors[transformed_node2] = color_node2
+            elif transformed_node1 not in graph[transformed_node2]:
+                graph[transformed_node2].append(transformed_node1)
+
+    return graph, node_colors
+
+
+
+def tranform_to_cnf(graph: Dict[int, list[int]], colors: Dict[int,int]) -> List[List[int]]:
     """
-    Get a successful coloring of the graph.
-    >>> successful_coloring(read_graph_from_file('graph.csv'))
-    [('A', 'red'), ('F', 'green'), ('D', 'purple'), ('G', 'blue'), ('V', 'red'), ('H', 'purple'), ('Y', 'yellow'), ('U', 'white')]
+    Retrns conjunctive normal form of future colors of graph verticles
+    Args:
+        graph (Dict[int, list[int]]): old graph
+        colors (Dict[int,int]: old colors
+    Returns:
+        List[List[int]]: conjuunctive form of new coloring
     """
-    coloring = [(vertex, data['color']) for vertex, data in graph.items()]
-    for _, data in graph.items():
-        color = data['color']
-        for neighbor in data['neighbors']:
-            if graph[neighbor]['color'] == color:
-                return "Coloring doesn't exist"
-    return coloring
+    cnf = []
+    for vert in graph:
+        new_colors = [0, 1, 2]
+        new_colors.remove(colors[vert])
+        cnf.append([vert + new for new in new_colors])
+        cnf.append([-(vert + new) for new in new_colors])
+        for adj_vert in graph[vert]:
+            for new_color in new_colors:
+                if colors[adj_vert] != new_color and\
+                    [-(adj_vert + new_color), -(vert + new_color)] not in cnf:
+                    cnf.append([-(vert + new_color), -(adj_vert + new_color)])
+    return cnf
+    
 
-def generate_random_color():
-    return random.choice(['red', 'green', 'blue'])
+def implication_graph(cnf: List[List[int]]) -> Dict[int,List[int]]:
+    """
+    Transforms disjunctions into implications and returns oriented graph
+    (a, b),(a, -c) ==> (-a, b),(-a,-c)
+    (a or b) and (a or -c) ==> (-a -> b) and (-a -> c)
+    Args:
+        cnf (List[List[int]]): CNF
+    Returns:
+        Dict[int,List[int]]: implication graph
+    """
+    imp_graph = {}
+    for (a, b) in cnf:
+        if -a not in imp_graph:
+            imp_graph[-a] = [b]
+        else:
+            if b not in imp_graph[-a]:
+                imp_graph[-a].append(b)
+        if -b not in imp_graph:
+            imp_graph[-b] = [a]
+        else:
+            if a not in imp_graph[-b]:
+                imp_graph[-b].append(a)
+    return imp_graph
 
-def generate_random_vertex():
-    return ''.join(random.choices(string.ascii_uppercase, k=1))
 
-def generate_random_edge(vertices):
-    vertex1 = random.choice(vertices)
-    vertex2 = random.choice([v for v in vertices if v != vertex1])
-    return vertex1, vertex2
+def reverse_graph(imp_graph: Dict[int,List[int]]) -> Dict[int,List[int]]:
+    """
+    Returns tranparent to given directed graph
+    Args:
+        imp_graph (Dict[int,List[int]]): implication graph
+    Returns:
+        Dict[int,List[int]]: transparent graph
+    """
+    reversed_graph = {}
+    for vert in imp_graph:
+        for adj_vert in imp_graph[vert]:
+            if adj_vert not in reversed_graph:
+                reversed_graph[adj_vert] = [vert]
+            else:
+                reversed_graph[adj_vert].append(vert)
+    return reversed_graph
 
-def generate_graph_csv(num_vertices, num_edges, output_file):
-    vertices = [generate_random_vertex() for _ in range(num_vertices)]
-    edges = [generate_random_edge(vertices) for _ in range(num_edges)]
 
-    data = []
-    for edge in edges:
-        color1, color2 = generate_random_color(), generate_random_color()
-        data.append((edge[0], edge[1], color1, color2))
+def dfs(imp_graph: Dict[int,List[int]], start: int, visited: List) -> List[int]:
+    """
+    Performs dfs on graph and returns list of vertices
+    Args:
+        imp_graph (Dict[int,List[int]]): implicated graph
+        start (int): vertice from which starts dfs
+        visited (List): visited vertices
+    Returns:
+        List[int]: dfs result
+    """
+    path = []
+    stack = [start]
+    dfs_graph = {}
+    for vertice in imp_graph:
+        dfs_graph[vertice] = sorted(imp_graph[vertice])
+    while len(stack) != 0:
+        clear_stack = True
+        vert = stack[-1]
+        if vert not in path:
+            visited.append(vert)
+            path.append(vert)
+        if vert in dfs_graph:
+            dfs_graph[vert] = [adj for adj in dfs_graph[vert] if adj not in visited]
+            if len(dfs_graph[vert]) != 0:
+                stack.append(dfs_graph[vert][0])
+                clear_stack = False
+        if clear_stack:
+            stack.pop()
+    return path
 
-    df = pd.DataFrame(data, columns=['Vertex1', 'Vertex2', 'Color1', 'Color2'])
-    df.to_csv(output_file, index=False)
 
-if __name__ == 'main':
-    generate_graph_csv(1000, 20000, 'large_graph.csv')
+def find_scc(graph: Dict[int, List[int]]) -> List[List[int]]:
+    """
+    Performs dfs from each implication graph's vertice not from visited\
+    and returns order of vertices\
+    Than performs dfs from each vertice in reverersed order from order\
+    on transparent to given graph and returns list of strongly conected components
+    Args:
+        graph (Dict[int, List[int]]): direct impication graph
+    Returns:
+        List[Set[int]]: list of strongly conected components
+    """
+    result = []
+    visited = []
+    order = []
+    for vert1 in graph.keys():
+        if vert1 not in visited:
+            order.extend(dfs(graph, vert1, visited))
+    new_visited = []
+    for vert2 in list(reversed(order)):
+        if vert2 not in new_visited:
+            result.append(dfs(reverse_graph(graph), vert2, new_visited))
+    return result
+
+
+def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int,int]) -> List[List[int]]:
+    """
+    Main function that checks if there is no x and -x in\
+    each strongly conected component for each vertice in graph
+    Args:
+        graph (Dict[int, List[int]]): graph from csv file
+        colors (Dict[int,int]): colorig of graph from csv
+    Returns:
+        List[List[int]]: new coloring
+    """
+    cnf = tranform_to_cnf(graph, colors)
+    imp_graph = implication_graph(cnf)
+    scc_list = list(find_scc(imp_graph))
+    new_graph = {}
+    for scc in list(reversed(scc_list)):
+        if len(list(map(abs,scc))) != len(set(list(map(abs,scc)))):
+            return "No solution"
+        for vert_color in list(reversed(scc)):
+            if len(new_graph) == len(graph):
+                break
+            if abs(vert_color)//3-1 not in new_graph:
+                if vert_color > 0:
+                    new_graph[vert_color//3-1] = vert_color%3
+                else:
+                    new_color = [color for color in [0,1,2]\
+                    if color not in [abs(vert_color)%3, colors[abs(vert_color)-abs(vert_color)%3]]]
+                    new_graph[abs(vert_color)//3-1] = new_color[0]
+    return(sorted(list(new_graph.items())))
+
+if __name__ == "__main__":
+    file_path = input("Input path to file: ")
+    grph,colrs = csv_to_graph(file_path)
+    print(recolor_graph(grph,colrs))
