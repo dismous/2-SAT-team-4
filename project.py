@@ -2,6 +2,8 @@
 Recoloring given colored graph using 2-SAT
 """
 from typing import Dict, List, Tuple
+import networkx as nx
+import matplotlib.pyplot as plt
 
 def csv_to_graph(path: str) -> Tuple[Dict[int, List[int]], Dict[int, int]]:
     """
@@ -50,7 +52,8 @@ def transform_to_cnf(graph: Dict[int, List[int]], colors: Dict[int, int]) -> Lis
         cnf.append([-(vert + new) for new in new_colors])
         for adj_vert in graph[vert]:
             for new_color in new_colors:
-                if colors[adj_vert] != new_color and [-(adj_vert + new_color), -(vert + new_color)] not in cnf:
+                if colors[adj_vert] != new_color and [-(adj_vert \
+                                                        + new_color), -(vert + new_color)] not in cnf:
                     cnf.append([-(vert + new_color), -(adj_vert + new_color)])
     return cnf
 
@@ -175,6 +178,28 @@ def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int, int]) -> List[T
                     new_graph[abs(vert_color) // 3 - 1] = new_color[0]
     return sorted(list(new_graph.items()))
 
+
+
+
+# def plot_graph(graph: Dict[int, List[int]], node_colors: Dict[int, int]):
+#     """
+#     Plots the graph using NetworkX and Matplotlib.
+#     Parameters:
+#         graph (Dict[int, List[int]]): The graph represented as an adjacency list.
+#         node_colors (Dict[int, int]): The dictionary mapping nodes to their colors.
+#     """
+#     G = nx.Graph()
+#     for node, neighbors in graph.items():
+#         G.add_node(node)
+#         for neighbor in neighbors:
+#             G.add_edge(node, neighbor)
+
+#     node_colors = [node_colors[node] for node in G.nodes()]
+
+#     pos = nx.spring_layout(G)
+#     nx.draw(G, pos, with_labels=True, node_color=node_colors, cmap=plt.cm.Set1)
+
+#     plt.show()
 
 if __name__ == "__main__":
     file_path = input("Input path to file: ")
