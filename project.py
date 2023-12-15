@@ -180,27 +180,6 @@ def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int, int]) -> List[T
 
 
 
-
-# def plot_graph(graph: Dict[int, List[int]], node_colors: Dict[int, int]):
-#     """
-#     Plots the graph using NetworkX and Matplotlib.
-#     Parameters:
-#         graph (Dict[int, List[int]]): The graph represented as an adjacency list.
-#         node_colors (Dict[int, int]): The dictionary mapping nodes to their colors.
-#     """
-#     G = nx.Graph()
-#     for node, neighbors in graph.items():
-#         G.add_node(node)
-#         for neighbor in neighbors:
-#             G.add_edge(node, neighbor)
-
-#     node_colors = [node_colors[node] for node in G.nodes()]
-
-#     pos = nx.spring_layout(G)
-#     nx.draw(G, pos, with_labels=True, node_color=node_colors, cmap=plt.cm.Set1)
-
-#     plt.show()
-
 if __name__ == "__main__":
     graph, colors = csv_to_graph('graph.csv')
     print(recolor_graph(graph, colors))
