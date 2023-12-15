@@ -7,7 +7,7 @@ def csv_to_graph(path: str) -> Tuple[Dict[int, List[int]], Dict[int, int]]:
     """
     Parses a CSV file to generate a graph and a corresponding color mapping.
     Parameters:
-        file_path (str): The file path for the CSV file.
+        path (str): The file path for the CSV file.
     Returns:
         Tuple[Dict[int, List[int]], Dict[int, int]]: A graph represented as an adjacency list,
         along with a dictionary mapping nodes to their colors.
@@ -21,29 +21,26 @@ def csv_to_graph(path: str) -> Tuple[Dict[int, List[int]], Dict[int, int]]:
             transformed_node2 = (node2 + 1) * 3
 
             if transformed_node1 not in graph:
-                graph[transformed_node1] = [transformed_node2]
-                node_colors[transformed_node1] = color_node1
-            elif transformed_node2 not in graph[transformed_node1]:
-                graph[transformed_node1].append(transformed_node2)
+                graph[transformed_node1] = []
+            graph[transformed_node1].append(transformed_node2)
+            node_colors[transformed_node1] = color_node1
 
             if transformed_node2 not in graph:
-                graph[transformed_node2] = [transformed_node1]
-                node_colors[transformed_node2] = color_node2
-            elif transformed_node1 not in graph[transformed_node2]:
-                graph[transformed_node2].append(transformed_node1)
+                graph[transformed_node2] = []
+            graph[transformed_node2].append(transformed_node1)
+            node_colors[transformed_node2] = color_node2
 
     return graph, node_colors
 
 
-
-def tranform_to_cnf(graph: Dict[int, list[int]], colors: Dict[int,int]) -> List[List[int]]:
+def transform_to_cnf(graph: Dict[int, List[int]], colors: Dict[int, int]) -> List[List[int]]:
     """
-    Retrns conjunctive normal form of future colors of graph verticles
+    Returns conjunctive normal form of future colors of graph vertices.
     Args:
-        graph (Dict[int, list[int]]): old graph
-        colors (Dict[int,int]: old colors
+        graph (Dict[int, List[int]]): The old graph.
+        colors (Dict[int, int]): The old colors.
     Returns:
-        List[List[int]]: conjuunctive form of new coloring
+        List[List[int]]: The conjunctive form of new coloring.
     """
     cnf = []
     for vert in graph:
@@ -53,21 +50,18 @@ def tranform_to_cnf(graph: Dict[int, list[int]], colors: Dict[int,int]) -> List[
         cnf.append([-(vert + new) for new in new_colors])
         for adj_vert in graph[vert]:
             for new_color in new_colors:
-                if colors[adj_vert] != new_color and\
-                    [-(adj_vert + new_color), -(vert + new_color)] not in cnf:
+                if colors[adj_vert] != new_color and [-(adj_vert + new_color), -(vert + new_color)] not in cnf:
                     cnf.append([-(vert + new_color), -(adj_vert + new_color)])
     return cnf
-    
 
-def implication_graph(cnf: List[List[int]]) -> Dict[int,List[int]]:
+
+def implication_graph(cnf: List[List[int]]) -> Dict[int, List[int]]:
     """
-    Transforms disjunctions into implications and returns oriented graph
-    (a, b),(a, -c) ==> (-a, b),(-a,-c)
-    (a or b) and (a or -c) ==> (-a -> b) and (-a -> c)
+    Transforms disjunctions into implications and returns an oriented graph.
     Args:
-        cnf (List[List[int]]): CNF
+        cnf (List[List[int]]): The CNF.
     Returns:
-        Dict[int,List[int]]: implication graph
+        Dict[int, List[int]]: The implication graph.
     """
     imp_graph = {}
     for (a, b) in cnf:
@@ -84,13 +78,13 @@ def implication_graph(cnf: List[List[int]]) -> Dict[int,List[int]]:
     return imp_graph
 
 
-def reverse_graph(imp_graph: Dict[int,List[int]]) -> Dict[int,List[int]]:
+def reverse_graph(imp_graph: Dict[int, List[int]]) -> Dict[int, List[int]]:
     """
-    Returns tranparent to given directed graph
+    Returns the transpose of the given directed graph.
     Args:
-        imp_graph (Dict[int,List[int]]): implication graph
+        imp_graph (Dict[int, List[int]]): The implication graph.
     Returns:
-        Dict[int,List[int]]: transparent graph
+        Dict[int, List[int]]: The transposed graph.
     """
     reversed_graph = {}
     for vert in imp_graph:
@@ -102,15 +96,15 @@ def reverse_graph(imp_graph: Dict[int,List[int]]) -> Dict[int,List[int]]:
     return reversed_graph
 
 
-def dfs(imp_graph: Dict[int,List[int]], start: int, visited: List) -> List[int]:
+def dfs(imp_graph: Dict[int, List[int]], start: int, visited: List[int]) -> List[int]:
     """
-    Performs dfs on graph and returns list of vertices
+    Performs depth-first search on the graph and returns the list of vertices.
     Args:
-        imp_graph (Dict[int,List[int]]): implicated graph
-        start (int): vertice from which starts dfs
-        visited (List): visited vertices
+        imp_graph (Dict[int, List[int]]): The implicated graph.
+        start (int): The vertex from which to start the DFS.
+        visited (List[int]): The visited vertices.
     Returns:
-        List[int]: dfs result
+        List[int]: The DFS result.
     """
     path = []
     stack = [start]
@@ -135,14 +129,11 @@ def dfs(imp_graph: Dict[int,List[int]], start: int, visited: List) -> List[int]:
 
 def find_scc(graph: Dict[int, List[int]]) -> List[List[int]]:
     """
-    Performs dfs from each implication graph's vertice not from visited\
-    and returns order of vertices\
-    Than performs dfs from each vertice in reverersed order from order\
-    on transparent to given graph and returns list of strongly conected components
+    Performs DFS from each vertex in the graph and returns the list of strongly connected components.
     Args:
-        graph (Dict[int, List[int]]): direct impication graph
+        graph (Dict[int, List[int]]): The direct implication graph.
     Returns:
-        List[Set[int]]: list of strongly conected components
+        List[List[int]]: The list of strongly connected components.
     """
     result = []
     visited = []
@@ -157,36 +148,35 @@ def find_scc(graph: Dict[int, List[int]]) -> List[List[int]]:
     return result
 
 
-def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int,int]) -> List[List[int]]:
+def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int, int]) -> List[Tuple[int, int]]:
     """
-    Main function that checks if there is no x and -x in\
-    each strongly conected component for each vertice in graph
+    Recolors the graph using 2-SAT algorithm.
     Args:
-        graph (Dict[int, List[int]]): graph from csv file
-        colors (Dict[int,int]): colorig of graph from csv
+        graph (Dict[int, List[int]]): The graph from the CSV file.
+        colors (Dict[int, int]): The coloring of the graph from the CSV file.
     Returns:
-        List[List[int]]: new coloring
+        List[Tuple[int, int]]: The new coloring.
     """
-    cnf = tranform_to_cnf(graph, colors)
+    cnf = transform_to_cnf(graph, colors)
     imp_graph = implication_graph(cnf)
     scc_list = list(find_scc(imp_graph))
     new_graph = {}
     for scc in list(reversed(scc_list)):
-        if len(list(map(abs,scc))) != len(set(list(map(abs,scc)))):
+        if len(list(map(abs, scc))) != len(set(list(map(abs, scc)))):
             return "No solution"
         for vert_color in list(reversed(scc)):
             if len(new_graph) == len(graph):
                 break
-            if abs(vert_color)//3-1 not in new_graph:
+            if abs(vert_color) // 3 - 1 not in new_graph:
                 if vert_color > 0:
-                    new_graph[vert_color//3-1] = vert_color%3
+                    new_graph[vert_color // 3 - 1] = vert_color % 3
                 else:
-                    new_color = [color for color in [0,1,2]\
-                    if color not in [abs(vert_color)%3, colors[abs(vert_color)-abs(vert_color)%3]]]
-                    new_graph[abs(vert_color)//3-1] = new_color[0]
-    return(sorted(list(new_graph.items())))
+                    new_color = [color for color in [0, 1, 2] if color not in [abs(vert_color) % 3, colors[abs(vert_color) - abs(vert_color) % 3]]]
+                    new_graph[abs(vert_color) // 3 - 1] = new_color[0]
+    return sorted(list(new_graph.items()))
+
 
 if __name__ == "__main__":
     file_path = input("Input path to file: ")
-    grph,colrs = csv_to_graph(file_path)
-    print(recolor_graph(grph,colrs))
+    grph, colrs = csv_to_graph(file_path)
+    print(recolor_graph(grph, colrs))
