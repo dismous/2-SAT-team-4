@@ -202,6 +202,5 @@ def recolor_graph(graph: Dict[int, List[int]], colors: Dict[int, int]) -> List[T
 #     plt.show()
 
 if __name__ == "__main__":
-    file_path = input("Input path to file: ")
-    grph, colrs = csv_to_graph(file_path)
-    print(recolor_graph(grph, colrs))
+    graph, colors = csv_to_graph('graph.csv')
+    print(recolor_graph(graph, colors))
